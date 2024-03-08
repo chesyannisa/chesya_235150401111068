@@ -1,0 +1,64 @@
+package studyCase2;
+
+import java.util.ArrayList;
+import java.util.Scanner;
+// chesya annisa - 235150401111068
+public class mainClass {
+    
+    public static void main(String[] a) {
+        ArrayList<mahasiswa> Mahasiswaa = new ArrayList<>();
+        Scanner inp = new Scanner(System.in);
+        boolean next = true;
+
+        while (next) {
+            System.out.print("Masukkan nim : ");
+            String nim = inp.nextLine();
+
+            System.out.print("Masukkan nama : ");
+            String nama = inp.nextLine();
+
+            System.out.print("Masukkan alamat: ");
+            String alamat = inp.nextLine();
+
+            mahasiswa mahasiswa = new mahasiswa(nim, nama, alamat);
+            Mahasiswaa.add(mahasiswa);
+
+            System.out.print("Tambah lagi? ");
+            String tambah = inp.nextLine();
+
+            if (tambah.equalsIgnoreCase("t")) {
+                next = false;
+            }
+        }
+
+        System.out.println("==================================");
+        for (mahasiswa mahasiswa : Mahasiswaa) {
+            System.out.println(mahasiswa.getNim() + " | " + mahasiswa.getNama() + " | " + mahasiswa.getAlamat());
+        }
+    }
+}
+
+public class mahasiswa {
+    
+    private String nim;
+    private String nama;
+    private String alamat;
+
+    public mahasiswa(String nim, String nama, String alamat) {
+        this.nim = nim;
+        this.nama = nama;
+        this.alamat = alamat;
+    }
+
+    public String getNim() {
+        return nim;
+    }
+
+    public String getNama() {
+        return nama;
+    }
+
+    public String getAlamat() {
+        return alamat;
+    }
+}
