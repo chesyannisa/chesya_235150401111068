@@ -1,0 +1,146 @@
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.*;
+
+public class gui extends JFrame {
+    private JTable table;
+    private JTextField foodNameField, quantityField, numPeopleField;
+    private JComboBox<String> paymentMethodComboBox;
+    private JButton loadButton, saveButton;
+
+    public gui() {
+        setTitle("Restaurant Order");
+        setSize(700, 500);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(null); // Set layout to null for absolute positioning
+
+        // Create and position the table
+        table = new JTable(new DefaultTableModel(new Object[]{"ID", "Menu", "Quantity", "Jml Orang", "Metode Pembayaran"}, 0));
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBounds(20, 20, 640, 200);
+        add(scrollPane);
+
+        // Create and position the input fields and labels
+        JLabel foodNameLabel = new JLabel("Menu:");
+        foodNameLabel.setBounds(20, 240, 80, 25);
+        add(foodNameLabel);
+
+        foodNameField = new JTextField();
+        foodNameField.setBounds(100, 240, 160, 25);
+        add(foodNameField);
+
+        JLabel quantityLabel = new JLabel("Quantity:");
+        quantityLabel.setBounds(20, 280, 80, 25);
+        add(quantityLabel);
+
+        quantityField = new JTextField();
+        quantityField.setBounds(100, 280, 160, 25);
+        add(quantityField);
+
+        JLabel numPeopleLabel = new JLabel("Jml Orang:");
+        numPeopleLabel.setBounds(20, 320, 80, 25);
+        add(numPeopleLabel);
+
+        numPeopleField = new JTextField();
+        numPeopleField.setBounds(100, 320, 160, 25);
+        add(numPeopleField);
+
+        JLabel paymentMethodLabel = new JLabel("Metode Pembayaran:");
+        paymentMethodLabel.setBounds(20, 360, 100, 25);
+        add(paymentMethodLabel);
+
+        paymentMethodComboBox = new JComboBox<>(new String[]{"Cash", "Non Cash"});
+        paymentMethodComboBox.setBounds(120, 360, 140, 25);
+        add(paymentMethodComboBox);
+
+        // Create and position the buttons
+        saveButton = new JButton("Save");
+        saveButton.setBounds(280, 240, 100, 25);
+        add(saveButton);
+
+        loadButton = new JButton("Load");
+        loadButton.setBounds(280, 280, 100, 25);
+        add(loadButton);
+
+        // Add action listeners to the buttons
+        loadButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadData();
+            }
+        });
+
+        saveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveData();
+            }
+        });
+    }
+
+    private void loadData() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0); // Clear existing data
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM orders")) {
+
+            while (rs.next()) {
+                model.addRow(new Object[]{rs.getInt("id"), rs.getString("food_name"), rs.getInt("quantity"), rs.getInt("num_people"), rs.getString("payment_method")});
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveData() {
+        String foodName = foodNameField.getText();
+        int quantity = Integer.parseInt(quantityField.getText());
+        int numPeople = Integer.parseInt(numPeopleField.getText());
+        String paymentMethod = (String) paymentMethodComboBox.getSelectedItem();
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement("INSERT INTO orders (food_name, quantity, num_people, payment_method) VALUES (?, ?, ?, ?)")) {
+
+            pstmt.setString(1, foodName);
+            pstmt.setInt(2, quantity);
+            pstmt.setInt(3, numPeople);
+            pstmt.setString(4, paymentMethod);
+            pstmt.executeUpdate();
+
+            JOptionPane.showMessageDialog(this, "Order saved successfully!");
+            foodNameField.setText("");
+            quantityField.setText("");
+            numPeopleField.setText("");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new gui().setVisible(true);
+            }
+        });
+    }
+
+    public static class DatabaseConnection {
+        private static final String URL = "jdbc:mysql://localhost:3306/restaurantdb";
+        private static final String USER = "root";
+        private static final String PASSWORD = "Chesyaaa_23";
+
+        public static Connection getConnection() {
+            try {
+                return DriverManager.getConnection(URL, USER, PASSWORD);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+    }
+}
